@@ -31,6 +31,10 @@ const eventSchema = new mongoose.Schema(
       enum: ["free", "paid"],
       required: true,
     },
+    paidIds: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User"
+    }
   },
   { timestamps: true }
 );
