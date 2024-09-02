@@ -73,6 +73,9 @@ const signUp = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
+  const header = req.headers['authorization']
+  const token2 = header && header.split(' ')[1]
+  console.log(token2)
   let user, token, passwordMatch;
   try {
     const { identity, password } = req.body;
