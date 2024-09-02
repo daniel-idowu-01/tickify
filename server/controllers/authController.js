@@ -75,14 +75,22 @@ const signUp = async (req, res, next) => {
 const login = async (req, res, next) => {
   let user, token, passwordMatch;
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { identity, password } = req.body;
+    if (!identity || !password) {
       return next(errorHandler(400, "Email or password is required!"));
     }
 
-    user = await User.findOne({ email });
-    if (!user) {
-      return next(errorHandler(404, "User not found!"));
+    const isEmail = emailRegex.test(identity);
+    if (isEmail) {
+      user = await User.findOne({ email: identity });
+      if (!user) {
+        return next(errorHandler(400, "Email not found!"));
+      }
+    } else {
+      user = await User.findOne({ username: identity });
+      if (!user) {
+        return next(errorHandler(400, "Username not found!"));
+      }
     }
 
     passwordMatch = await bcrypt.compare(password, user.password);
