@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    age: {
+      type: Number,
+      required: true
+    },
     profileImage: {
       type: String,
       default: ''
@@ -32,6 +36,9 @@ const userSchema = new mongoose.Schema(
     emailVerified: {
       type: Boolean,
       default: false
+    },
+    bio: {
+      type: String
     },
     googleId: {
       type: String

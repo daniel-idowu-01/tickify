@@ -10,12 +10,19 @@ const signUp = async (req, res, next) => {
     const {
       firstName,
       lastName,
-      username,
       email,
       password,
+      dateOfBirth,
       profileImage,
       phoneNumber,
     } = req.body;
+    const today = new Date()
+    const userBirth = new Date(dateOfBirth)
+    const age = today.getFullYear() - userBirth.getFullYear()
+    
+    if (age < 18) {
+      return next(errorHandler(400, "You must be 18 or older!"))
+    }
     const hashedPassword = await bcrypt.hash(
       password,
       Number(process.env.SALT)
@@ -58,9 +65,9 @@ const signUp = async (req, res, next) => {
     await User.create({
       firstName,
       lastName,
-      username,
       email,
       password: hashedPassword,
+      age,
       profileImage,
       phoneNumber,
     });
