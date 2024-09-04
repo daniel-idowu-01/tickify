@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import authRoute from "./routes/authRoute.js";
+import eventRoute from "./routes/eventRoute.js";
+import organizerRoute from "./routes/organizerRoute.js";
 import { connectDB } from "./config/mongo.js";
 
 const app = express();
@@ -16,6 +18,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoute);
+app.use("/api/event", eventRoute);
+app.use("/api/organizer", organizerRoute);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

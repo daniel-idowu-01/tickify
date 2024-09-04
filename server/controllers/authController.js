@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { errorHandler } from "../middleware/errorHandler.js";
 import { emailRegex, passwordRegex } from "../utils/constants.js";
+import Organizer from "../models/Organizer.js";
 
 const signUp = async (req, res, next) => {
   try {
@@ -73,9 +74,6 @@ const signUp = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-  const header = req.headers['authorization']
-  const token2 = header && header.split(' ')[1]
-  console.log(token2)
   let user, token, passwordMatch;
   try {
     const { identity, password } = req.body;
@@ -84,16 +82,17 @@ const login = async (req, res, next) => {
     }
 
     const isEmail = emailRegex.test(identity);
-    if (isEmail) {
-      user = await User.findOne({ email: identity });
-      if (!user) {
-        return next(errorHandler(400, "Email not found!"));
-      }
-    } else {
-      user = await User.findOne({ username: identity });
-      if (!user) {
-        return next(errorHandler(400, "Username not found!"));
-      }
+    const userField = isEmail ? "email" : "username";
+    const organizerField = isEmail ? "email" : "name";
+
+    user =
+      (await User.findOne({ [userField]: identity })) ||
+      (await Organizer.findOne({ [organizerField]: identity }));
+    
+    /* 66d8c2c1255b74c38d112d55 */
+    if (!user) {
+      const errorMessage = isEmail ? "Email not found!" : "Username not found!";
+      return next(errorHandler(400, errorMessage));
     }
 
     passwordMatch = await bcrypt.compare(password, user.password);
