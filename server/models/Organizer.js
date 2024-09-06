@@ -37,6 +37,10 @@ const organizerSchema = new mongoose.Schema(
     phoneNumberVerified: {
       type: Boolean,
       default: false
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

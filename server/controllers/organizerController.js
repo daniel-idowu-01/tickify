@@ -61,6 +61,27 @@ const createOrganizer = async (req, res, next) => {
   }
 };
 
+const getOrganizerById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const organizer = await Organizer.findById(id);
+    if (!organizer || organizer.isDeleted) {
+      return next(errorHandler(400, "Organizer not found!"));
+    }
+
+    const { password, __v, createdAt, deletedAt, isDeleted, ...newOrganizer } =
+    organizer._doc;
+
+    res.status(200).json({ success: true, message: newOrganizer });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateOrganizerById = async (req, res, next) => {
   const { name, bio, profileImage, backgroundImage } = req.body;
   const { id } = req.params;
@@ -127,4 +148,4 @@ const deleteOrganizerById = async (req, res, next) => {
   }
 };
 
-export { createOrganizer, updateOrganizerById, deleteOrganizerById };
+export { createOrganizer, getOrganizerById, updateOrganizerById, deleteOrganizerById };
