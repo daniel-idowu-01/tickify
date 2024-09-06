@@ -34,4 +34,42 @@ const createEvent = async (req, res, next) => {
   }
 };
 
-export { createEvent };
+const updateEventById = async (req, res, next) => {
+  const { eventImage, eventName, location, eventAddress, mode } = req.body;
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    if ((!eventImage, !eventName, !location, !eventAddress, !mode)) {
+      return next(errorHandler(400, "Please provide relevant details!"));
+    }
+
+    const event = await Event.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          eventImage,
+          eventName,
+          location,
+          eventAddress,
+          mode,
+        },
+      },
+      { new: true }
+    );
+
+    if (!event) {
+      return next(errorHandler(400, "Event not found!"));
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Event successfully updated" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { createEvent, updateEventById };
