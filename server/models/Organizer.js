@@ -20,7 +20,14 @@ const organizerSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    backgroundImage: {
+      type: String,
+      default: ''
+    },
     phoneNumber: {
+      type: String
+    },
+    bio: {
       type: String
     },
     emailVerified: {

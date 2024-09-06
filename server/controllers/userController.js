@@ -35,4 +35,30 @@ const updateUserById = async (req, res, next) => {
   }
 };
 
-export { updateUserById };
+const deleteUserById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isDeleted: true
+        },
+      },
+      { new: true });
+    
+    if (!user) {
+      return next(errorHandler(400, "User not found!"))
+    }
+    
+    res.status(200).json({ success: true, message: 'User successfully deleted'});
+  } catch (error) {
+    next(error)
+  }
+};
+
+export { updateUserById, deleteUserById };

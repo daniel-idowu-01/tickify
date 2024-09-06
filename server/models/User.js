@@ -42,6 +42,9 @@ const userSchema = new mongoose.Schema(
     },
     googleId: {
       type: String
+    },
+    isDeleted: {
+      type: Boolean
     }
   },
   { timestamps: true }

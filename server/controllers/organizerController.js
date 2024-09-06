@@ -5,13 +5,7 @@ import { emailRegex, passwordRegex } from "../utils/constants.js";
 
 const createOrganizer = async (req, res, next) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      profileImage,
-      phoneNumber,
-    } = req.body;
+    const { name, email, password, profileImage, phoneNumber } = req.body;
     const hashedPassword = await bcrypt.hash(
       password,
       Number(process.env.SALT)
@@ -67,4 +61,70 @@ const createOrganizer = async (req, res, next) => {
   }
 };
 
-export { createOrganizer };
+const updateOrganizerById = async (req, res, next) => {
+  const { name, bio, profileImage, backgroundImage } = req.body;
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    if (!name && !bio && !profileImage && !backgroundImage) {
+      return next(errorHandler(400, "Please provide relevant details!"));
+    }
+
+    const organizer = await Organizer.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          name,
+          bio,
+          profileImage,
+          backgroundImage,
+        },
+      },
+      { new: true }
+    );
+
+    if (!organizer) {
+      return next(errorHandler(400, "Organizer not found!"));
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Organizer successfully updated" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteOrganizerById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const organizer = await Organizer.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isDeleted: true,
+        },
+      },
+      { new: true }
+    );
+
+    if (!organizer) {
+      return next(errorHandler(400, "Organizer not found!"));
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Organizer successfully deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { createOrganizer, updateOrganizerById, deleteOrganizerById };
