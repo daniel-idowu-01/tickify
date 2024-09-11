@@ -12,6 +12,13 @@ const commentSchema = new mongoose.Schema(
       ref: "Event",
       required: true,
     },
+    profileImage: {
+      type: String,
+      default: "",
+    },
+    username: {
+      type: String,
+    },
     comment: {
       type: String,
       required: true,
@@ -19,6 +26,10 @@ const commentSchema = new mongoose.Schema(
     parentCommentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Comment",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

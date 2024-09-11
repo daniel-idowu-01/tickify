@@ -34,6 +34,83 @@ const createEvent = async (req, res, next) => {
   }
 };
 
+const getEventById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const event = await Event.findById(id);
+    if (!event || event.isDeleted) {
+      return next(errorHandler(400, "Event not found!"));
+    }
+
+    const {
+      organizerId,
+      __v,
+      createdAt,
+      deletedAt,
+      updatedAt,
+      paidIds,
+      isDeleted,
+      ...newEvent
+    } = event._doc;
+
+    res.status(200).json({ success: true, message: newEvent });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getEventsByOrganizerId = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const event = await Event.find({
+      organizerId: id,
+    }, {
+      __v: 0,
+      createdAt: 0,
+      deletedAt: 0,
+      updatedAt: 0,
+      paidIds: 0,
+      isDeleted: 0,
+    });
+    if (!event || event.isDeleted) {
+      return next(errorHandler(400, "Event not found!"));
+    }
+
+    res.status(200).json({ success: true, message: event });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAllEvents = async (req, res, next) => {
+  try {
+
+    const events = await Event.find({}, {
+      __v: 0,
+      createdAt: 0,
+      deletedAt: 0,
+      updatedAt: 0,
+      paidIds: 0,
+      isDeleted: 0,
+    });
+    if (!events || events.isDeleted) {
+      return next(errorHandler(400, "Event not found!"));
+    }
+
+    res.status(200).json({ success: true, message: events });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateEventById = async (req, res, next) => {
   const { eventImage, eventName, location, eventAddress, mode } = req.body;
   const { id } = req.params;
@@ -72,4 +149,40 @@ const updateEventById = async (req, res, next) => {
   }
 };
 
-export { createEvent, updateEventById };
+const deleteEventById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const event = await Event.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isDeleted: true,
+        },
+      },
+      { new: true }
+    );
+
+    if (!event) {
+      return next(errorHandler(400, "Event not found!"));
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Event successfully deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {
+  createEvent,
+  getEventById,
+  getEventsByOrganizerId,
+  getAllEvents,
+  updateEventById,
+  deleteEventById,
+};

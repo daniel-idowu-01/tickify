@@ -96,7 +96,6 @@ const login = async (req, res, next) => {
       (await User.findOne({ [userField]: identity })) ||
       (await Organizer.findOne({ [organizerField]: identity }));
     
-    /* 66d8c2c1255b74c38d112d55 */
     if (!user) {
       const errorMessage = isEmail ? "Email not found!" : "Username not found!";
       return next(errorHandler(400, errorMessage));
