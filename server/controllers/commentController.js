@@ -42,7 +42,14 @@ const getCommentById = async (req, res, next) => {
       return next(errorHandler(400, "Input valid ID"));
     }
 
-    const comment = await Comment.findById(id);
+    const comment = await Comment.findById(id, {
+      __v: 0,
+      createdAt: 0,
+      deletedAt: 0,
+      updatedAt: 0,
+      paidIds: 0,
+      isDeleted: 0,
+    });
     if (!comment || comment.isDeleted) {
       return next(errorHandler(400, "Comment not found!"));
     }
@@ -65,16 +72,16 @@ const getCommentById = async (req, res, next) => {
   }
 };
 
-const getEventsByOrganizerId = async (req, res, next) => {
+const getCommentsByParentId = async (req, res, next) => {
   const { id } = req.params;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return next(errorHandler(400, "Input valid ID"));
     }
 
-    const event = await Event.find(
+    const comment = await Comment.find(
       {
-        organizerId: id,
+        parentCommentId: id,
       },
       {
         __v: 0,
@@ -85,20 +92,23 @@ const getEventsByOrganizerId = async (req, res, next) => {
         isDeleted: 0,
       }
     );
-    if (!event || event.isDeleted) {
-      return next(errorHandler(400, "Event not found!"));
+    if (!comment || comment.isDeleted) {
+      return next(errorHandler(400, "Comment not found!"));
     }
 
-    res.status(200).json({ success: true, message: event });
+    res.status(200).json({ success: true, message: comment });
   } catch (error) {
     next(error);
   }
 };
 
-const getAllEvents = async (req, res, next) => {
+const getAllCommentsByEventId = async (req, res, next) => {
+  const { id } = req.params;
   try {
-    const events = await Event.find(
-      {},
+    const comments = await Comment.find(
+      {
+        eventId: id
+      },
       {
         __v: 0,
         createdAt: 0,
@@ -108,62 +118,24 @@ const getAllEvents = async (req, res, next) => {
         isDeleted: 0,
       }
     );
-    if (!events || events.isDeleted) {
-      return next(errorHandler(400, "Event not found!"));
+    if (!comments || comments.isDeleted) {
+      return next(errorHandler(400, "Comments not found!"));
     }
 
-    res.status(200).json({ success: true, message: events });
+    res.status(200).json({ success: true, message: comments });
   } catch (error) {
     next(error);
   }
 };
 
-const updateEventById = async (req, res, next) => {
-  const { eventImage, eventName, location, eventAddress, mode } = req.body;
+const deleteCommentById = async (req, res, next) => {
   const { id } = req.params;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return next(errorHandler(400, "Input valid ID"));
     }
 
-    if ((!eventImage, !eventName, !location, !eventAddress, !mode)) {
-      return next(errorHandler(400, "Please provide relevant details!"));
-    }
-
-    const event = await Event.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          eventImage,
-          eventName,
-          location,
-          eventAddress,
-          mode,
-        },
-      },
-      { new: true }
-    );
-
-    if (!event) {
-      return next(errorHandler(400, "Event not found!"));
-    }
-
-    res
-      .status(200)
-      .json({ success: true, message: "Event successfully updated" });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteEventById = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return next(errorHandler(400, "Input valid ID"));
-    }
-
-    const event = await Event.findByIdAndUpdate(
+    const comment = await Comment.findByIdAndUpdate(
       id,
       {
         $set: {
@@ -173,13 +145,13 @@ const deleteEventById = async (req, res, next) => {
       { new: true }
     );
 
-    if (!event) {
-      return next(errorHandler(400, "Event not found!"));
+    if (!comment) {
+      return next(errorHandler(400, "Comment not found!"));
     }
 
     res
       .status(200)
-      .json({ success: true, message: "Event successfully deleted" });
+      .json({ success: true, message: "Comment successfully deleted" });
   } catch (error) {
     next(error);
   }
@@ -188,8 +160,7 @@ const deleteEventById = async (req, res, next) => {
 export {
   createComment,
   getCommentById,
-  getEventsByOrganizerId,
-  getAllEvents,
-  updateEventById,
-  deleteEventById,
+  getCommentsByParentId,
+  getAllCommentsByEventId,
+  deleteCommentById,
 };
