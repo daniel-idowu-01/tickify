@@ -23,6 +23,19 @@ const getUserById = async (req, res, next) => {
   }
 };
 
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    if (!users || users.isDeleted) {
+      return next(errorHandler(400, "Users not found!"));
+    }
+
+    res.status(200).json({ success: true, message: users });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateUserById = async (req, res, next) => {
   const { username, bio, profileImage } = req.body;
   const { id } = req.params;
@@ -88,4 +101,4 @@ const deleteUserById = async (req, res, next) => {
   }
 };
 
-export { updateUserById, deleteUserById, getUserById };
+export { updateUserById, deleteUserById, getUserById, getAllUsers };

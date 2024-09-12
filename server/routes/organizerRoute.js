@@ -2,6 +2,7 @@ import expressRouter from "express";
 import {
   createOrganizer,
   getOrganizerById,
+  getAllOrganizers,
   updateOrganizerById,
   deleteOrganizerById,
 } from "../controllers/organizerController.js";
@@ -9,7 +10,8 @@ import {
 const router = expressRouter();
 
 router.post("/", createOrganizer);
-router.get("/", getOrganizerById);
+router.get("/:id", getOrganizerById);
+router.get("/", getAllOrganizers);
 router.put("/:id", updateOrganizerById);
 router.delete("/:id", deleteOrganizerById);
 

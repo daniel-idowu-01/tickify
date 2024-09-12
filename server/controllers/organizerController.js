@@ -74,9 +74,22 @@ const getOrganizerById = async (req, res, next) => {
     }
 
     const { password, __v, createdAt, deletedAt, isDeleted, ...newOrganizer } =
-    organizer._doc;
+      organizer._doc;
 
     res.status(200).json({ success: true, message: newOrganizer });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAllOrganizers = async (req, res, next) => {
+  try {
+    const organizers = await Organizer.find({});
+    if (!organizers || organizers.isDeleted) {
+      return next(errorHandler(400, "Organizers not found!"));
+    }
+
+    res.status(200).json({ success: true, message: organizers });
   } catch (error) {
     next(error);
   }
@@ -148,4 +161,10 @@ const deleteOrganizerById = async (req, res, next) => {
   }
 };
 
-export { createOrganizer, getOrganizerById, updateOrganizerById, deleteOrganizerById };
+export {
+  createOrganizer,
+  getOrganizerById,
+  getAllOrganizers,
+  updateOrganizerById,
+  deleteOrganizerById,
+};
