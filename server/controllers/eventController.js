@@ -70,16 +70,19 @@ const getEventsByOrganizerId = async (req, res, next) => {
       return next(errorHandler(400, "Input valid ID"));
     }
 
-    const event = await Event.find({
-      organizerId: id,
-    }, {
-      __v: 0,
-      createdAt: 0,
-      deletedAt: 0,
-      updatedAt: 0,
-      paidIds: 0,
-      isDeleted: 0,
-    });
+    const event = await Event.find(
+      {
+        organizerId: id,
+      },
+      {
+        __v: 0,
+        createdAt: 0,
+        deletedAt: 0,
+        updatedAt: 0,
+        paidIds: 0,
+        isDeleted: 0,
+      }
+    );
     if (!event || event.isDeleted) {
       return next(errorHandler(400, "Event not found!"));
     }
@@ -92,15 +95,17 @@ const getEventsByOrganizerId = async (req, res, next) => {
 
 const getAllEvents = async (req, res, next) => {
   try {
-
-    const events = await Event.find({}, {
-      __v: 0,
-      createdAt: 0,
-      deletedAt: 0,
-      updatedAt: 0,
-      paidIds: 0,
-      isDeleted: 0,
-    });
+    const events = await Event.find(
+      {},
+      {
+        __v: 0,
+        createdAt: 0,
+        deletedAt: 0,
+        updatedAt: 0,
+        paidIds: 0,
+        isDeleted: 0,
+      }
+    );
     if (!events || events.isDeleted) {
       return next(errorHandler(400, "Event not found!"));
     }

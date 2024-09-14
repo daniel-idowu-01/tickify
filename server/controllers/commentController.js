@@ -107,7 +107,7 @@ const getAllCommentsByEventId = async (req, res, next) => {
   try {
     const comments = await Comment.find(
       {
-        eventId: id
+        eventId: id,
       },
       {
         __v: 0,

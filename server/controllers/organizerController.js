@@ -84,6 +84,12 @@ const getOrganizerById = async (req, res, next) => {
 
 const getAllOrganizers = async (req, res, next) => {
   try {
+    const admin = await User.findById(req.user.id);
+
+    if (!admin || admin.isDeleted || admin.id !== process.env.ADMIN_ID) {
+      return next(errorHandler(401, "Unauthorized!"));
+    }
+
     const organizers = await Organizer.find({});
     if (!organizers || organizers.isDeleted) {
       return next(errorHandler(400, "Organizers not found!"));

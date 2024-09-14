@@ -1,4 +1,5 @@
 import expressRouter from "express";
+import { authToken } from "../middleware/authToken.js";
 import {
   createComment,
   getCommentById,
@@ -9,10 +10,10 @@ import {
 
 const router = expressRouter();
 
-router.post("/:userId/:eventId/:parentCommentId", createComment);
-router.get("/:id", getCommentById);
-router.get("/:id/comments", getCommentsByParentId);
-router.get("/:id/events/comments", getAllCommentsByEventId);
-router.delete("/:id", deleteCommentById);
+router.post("/:userId/:eventId/:parentCommentId", authToken, createComment);
+router.get("/:id", authToken, getCommentById);
+router.get("/:id/comments", authToken, getCommentsByParentId);
+router.get("/:id/events/comments", authToken, getAllCommentsByEventId);
+router.delete("/:id", authToken, deleteCommentById);
 
 export default router;

@@ -1,4 +1,5 @@
 import expressRouter from "express";
+import { authToken } from "../middleware/authToken.js";
 import {
   createOrganizer,
   getOrganizerById,
@@ -9,10 +10,10 @@ import {
 
 const router = expressRouter();
 
-router.post("/", createOrganizer);
-router.get("/:id", getOrganizerById);
-router.get("/", getAllOrganizers);
-router.put("/:id", updateOrganizerById);
-router.delete("/:id", deleteOrganizerById);
+router.post("/", authToken, createOrganizer);
+router.get("/:id", authToken, getOrganizerById);
+router.get("/", authToken, getAllOrganizers);
+router.put("/:id", authToken, updateOrganizerById);
+router.delete("/:id", authToken, deleteOrganizerById);
 
 export default router;
