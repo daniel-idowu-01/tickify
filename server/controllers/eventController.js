@@ -14,6 +14,10 @@ const createEvent = async (req, res, next) => {
     }
 
     organizer = await Organizer.findById(id);
+    if (!organizer) {
+      return next(errorHandler(400, "Organizer not found!"));
+    }
+
     const event = await Event.create({
       organizerId: organizer._id,
       eventImage,
