@@ -5,8 +5,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { errorHandler } from "../middleware/errorHandler.js";
 import { emailRegex, passwordRegex } from "../utils/constants.js";
+import { transporter } from "../utils/emailTransport.js";
 
 const signUp = async (req, res, next) => {
+  let url;
   try {
     const {
       firstName,
@@ -20,7 +22,7 @@ const signUp = async (req, res, next) => {
     } = req.body;
     const today = new Date();
     const userBirth = new Date(dateOfBirth);
-    const age = today.getFullYear() - userBirth.getFullYear();
+    const age = Number(today.getFullYear() - userBirth.getFullYear());
 
     if (age < 18) {
       return next(errorHandler(400, "You must be 18 or older!"));
@@ -64,7 +66,7 @@ const signUp = async (req, res, next) => {
       );
     }
 
-    await User.create({
+    const createdUser = await User.create({
       firstName,
       lastName,
       username,
@@ -75,9 +77,40 @@ const signUp = async (req, res, next) => {
       phoneNumber,
     });
 
-    res
+    jwt.sign(
+      {
+        id: createdUser._id,
+      },
+      process.env.EMAIL_JWT_SECRET,
+      {
+        expiresIn: "1d",
+      },
+      (err, emailToken) => {
+        url = `http://localhost:3000/api/auth/confirm-email/${emailToken}`;
+        const mailOptions = {
+          from: "danielidowu414@gmail.com",
+          to: "jorovod391@nastyx.com",
+          subject: "Confirm your email!",
+          html: `Welcome <b>${firstName}</b>,
+              Kindly confirm your email <a href=${url} target='_blank'>here</a>
+              `,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            return next(errorHandler(400, error));
+          } else {
+            return res
+              .status(200)
+              .json({ success: true, message: "Confirmation email sent!" });
+          }
+        });
+      }
+    );
+
+    /* res
       .status(201)
-      .json({ success: true, message: "User created successfully!" });
+      .json({ success: true, message: "User created successfully!" }); */
   } catch (error) {
     next(error);
   }
@@ -102,6 +135,10 @@ const login = async (req, res, next) => {
     if (!user) {
       const errorMessage = isEmail ? "Email not found!" : "Username not found!";
       return next(errorHandler(400, errorMessage));
+    }
+
+    if (!user.emailVerified) {
+      return next(errorHandler(401, "Please confirm your email to login!"));
     }
 
     passwordMatch = await bcrypt.compare(password, user.password);
@@ -182,4 +219,23 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-export { signUp, login, changePassword };
+const confirmEmail = async (req, res, next) => {
+  const { emailToken } = req.params;
+  jwt.verify(emailToken, process.env.EMAIL_JWT_SECRET, async (err, user) => {
+    if (err) {
+      return next(errorHandler(400, "Invalid email token!"));
+    }
+
+    await User.findByIdAndUpdate(user.id, {
+      $set: { emailVerified: true },
+    });
+
+    return res
+      .status(201)
+      .json({ success: true, message: "Your account has been confirmed!" });
+  });
+
+  /* res.redirect(FRONTEND_URL) */
+};
+
+export { signUp, login, changePassword, confirmEmail };
