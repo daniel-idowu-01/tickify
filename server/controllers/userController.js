@@ -79,55 +79,6 @@ const updateUserById = async (req, res, next) => {
   }
 };
 
-const changeUserPassword = async (req, res, next) => {
-  let passwordMatch;
-  const { password } = req.body;
-  const { id } = req.user;
-  try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return next(errorHandler(400, "Input valid ID"));
-    }
-
-    if (!password) {
-      return next(errorHandler(400, "Please provide relevant details!"));
-    }
-    const hashedPassword = await bcrypt.hash(
-      password,
-      Number(process.env.SALT)
-    );
-
-    const userPassword = await User.findById(id).select("password");
-
-    passwordMatch = await bcrypt.compare(password, userPassword.password);
-
-    if (passwordMatch) {
-      return next(
-        errorHandler(400, "Old password cannot be used as new password!")
-      );
-    }
-
-    const user = await User.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          password: hashedPassword,
-        },
-      },
-      { new: true }
-    );
-
-    if (!user) {
-      return next(errorHandler(400, "User not found!"));
-    }
-
-    res
-      .status(200)
-      .json({ success: true, message: "User password successfully updated" });
-  } catch (error) {
-    next(error);
-  }
-};
-
 const deleteUserById = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -161,6 +112,5 @@ export {
   updateUserById,
   deleteUserById,
   getUserById,
-  changeUserPassword,
   getAllUsers,
 };

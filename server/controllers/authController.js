@@ -1,9 +1,10 @@
+import mongoose from "mongoose";
 import User from "../models/User.js";
+import Organizer from "../models/Organizer.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { errorHandler } from "../middleware/errorHandler.js";
 import { emailRegex, passwordRegex } from "../utils/constants.js";
-import Organizer from "../models/Organizer.js";
 
 const signUp = async (req, res, next) => {
   try {
@@ -120,4 +121,65 @@ const login = async (req, res, next) => {
   }
 };
 
-export { signUp, login };
+const changePassword = async (req, res, next) => {
+  let passwordMatch;
+  const { password } = req.body;
+  const { id } = req.user;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    if (!password) {
+      return next(errorHandler(400, "Please provide relevant details!"));
+    }
+    const hashedPassword = await bcrypt.hash(
+      password,
+      Number(process.env.SALT)
+    );
+
+    const userPassword =
+      (await User.findById(id).select("password")) ||
+      (await Organizer.findById(id).select("password"));
+
+    passwordMatch = await bcrypt.compare(password, userPassword.password);
+
+    if (passwordMatch) {
+      return next(
+        errorHandler(400, "Old password cannot be used as new password!")
+      );
+    }
+
+    const user =
+      (await User.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            password: hashedPassword,
+          },
+        },
+        { new: true }
+      )) ||
+      (await Organizer.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            password: hashedPassword,
+          },
+        },
+        { new: true }
+      ));
+
+    if (!user) {
+      return next(errorHandler(400, "User not found!"));
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "User password successfully updated" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { signUp, login, changePassword };
