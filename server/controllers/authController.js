@@ -89,8 +89,8 @@ const signUp = async (req, res, next) => {
         url = `http://localhost:3000/api/auth/confirm-email/${emailToken}`;
         const mailOptions = {
           from: "danielidowu414@gmail.com",
-          to: "jorovod391@nastyx.com",
-          subject: "Confirm your email!",
+          to: "jorovod391@nastyx.com", // change to dynamic email
+          subject: "Welcome to Tickify!",
           html: `Welcome <b>${firstName}</b>,
               Kindly confirm your email <a href=${url} target='_blank'>here</a>
               `,
@@ -159,33 +159,37 @@ const login = async (req, res, next) => {
 };
 
 const changePassword = async (req, res, next) => {
-  let passwordMatch;
-  const { password } = req.body;
+  let oldPasswordMatch;
+  const { oldPassword, newPassword } = req.body;
   const { id } = req.user;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return next(errorHandler(400, "Input valid ID"));
     }
 
-    if (!password) {
+    if (!oldPassword || !newPassword) {
       return next(errorHandler(400, "Please provide relevant details!"));
     }
-    const hashedPassword = await bcrypt.hash(
-      password,
-      Number(process.env.SALT)
-    );
+
+    if (oldPassword === newPassword) {
+      return next(
+        errorHandler(400, "New password cannot be the same as the old one!")
+      );
+    }
 
     const userPassword =
       (await User.findById(id).select("password")) ||
       (await Organizer.findById(id).select("password"));
 
-    passwordMatch = await bcrypt.compare(password, userPassword.password);
-
-    if (passwordMatch) {
-      return next(
-        errorHandler(400, "Old password cannot be used as new password!")
-      );
+    oldPasswordMatch = await bcrypt.compare(oldPassword, userPassword.password);
+    if (!oldPasswordMatch) {
+      return next(errorHandler(400, "Wrong old password!"));
     }
+
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      Number(process.env.SALT)
+    );
 
     const user =
       (await User.findByIdAndUpdate(
@@ -208,7 +212,7 @@ const changePassword = async (req, res, next) => {
       ));
 
     if (!user) {
-      return next(errorHandler(400, "User not found!"));
+      return next(errorHandler(400, "Password update unsuccessful!"));
     }
 
     res
