@@ -16,6 +16,10 @@ const ticketSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isUsed: {
+      type: Boolean,
+      default: false,
+    },
     isExpired: {
       type: Boolean,
       default: false,

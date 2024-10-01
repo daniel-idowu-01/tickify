@@ -86,6 +86,50 @@ const getTicketById = async (req, res, next) => {
   }
 };
 
+const validateTicket = async (req, res, next) => {
+  const { ticketId } = req.body;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(ticketId)) {
+      return next(errorHandler(400, "Input valid ID"));
+    }
+
+    const ticket = await Ticket.findById(ticketId, {
+      __v: 0,
+      createdAt: 0,
+      deletedAt: 0,
+      updatedAt: 0,
+      isDeleted: 0,
+    });
+
+    if (!ticket) {
+      return next(errorHandler(404, "Ticket not found!"));
+    }
+
+    const event = await Event.findById(ticket.eventId);
+    if (!event) {
+      return next(errorHandler(404, "Event not found"));
+    }
+
+    if (ticket.isUsed) {
+      return next(errorHandler(400, "Ticket has already been used!"));
+    }
+
+    await Ticket.findByIdAndUpdate(
+      ticket._id,
+      {
+        $set: {
+          isUsed: true,
+        },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({ success: true, message: "Ticket is valid" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getAllTicketsByEventId = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -102,7 +146,7 @@ const getAllTicketsByEventId = async (req, res, next) => {
         isDeleted: 0,
       }
     );
-    console.log('All Tickets', tickets)
+    console.log("All Tickets", tickets);
     if (!tickets || tickets.isDeleted) {
       return next(errorHandler(400, "tickets not found!"));
     }
@@ -120,7 +164,6 @@ const expireTicketById = async (req, res, next) => {
       return next(errorHandler(400, "Input valid ID"));
     }
 
-
     const ticket = await Ticket.findByIdAndUpdate(
       id,
       {
@@ -136,9 +179,7 @@ const expireTicketById = async (req, res, next) => {
       return next(errorHandler(400, "Ticket not found!"));
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Ticket is expired!!!" });
+    res.status(200).json({ success: true, message: "Ticket is expired!!!" });
   } catch (error) {
     next(error);
   }
@@ -175,12 +216,13 @@ const deleteTicketById = async (req, res, next) => {
 };
 
 const isTicketExpired = (ticket) => {
-  return new Date() > ticket.expiredAt
-}
+  return new Date() > ticket.expiredAt;
+};
 
 export {
   createTicket,
   getTicketById,
+  validateTicket,
   getAllTicketsByEventId,
   expireTicketById,
   deleteTicketById,
