@@ -4,6 +4,7 @@ import authRoute from "./routes/authRoute.js";
 import userRoute from "./routes/userRoute.js";
 import eventRoute from "./routes/eventRoute.js";
 import organizerRoute from "./routes/organizerRoute.js";
+import ticketRoute from "./routes/ticketRoute.js";
 import { connectDB } from "./config/mongo.js";
 
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/event", eventRoute);
 app.use("/api/organizer", organizerRoute);
+app.use("/api/ticket", ticketRoute);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
