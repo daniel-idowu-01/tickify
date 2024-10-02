@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Organizer from "../models/Organizer.js";
 import Event from "../models/Event.js";
 import { errorHandler } from "../middleware/errorHandler.js";
+import Ticket from "../models/Ticket.js";
 
 const createEvent = async (req, res, next) => {
   let organizer;
@@ -50,6 +51,9 @@ const getEventById = async (req, res, next) => {
       return next(errorHandler(400, "Event not found!"));
     }
 
+    const attendees = await Ticket.countDocuments({ eventId: event._id });
+    console.log("attendees", attendees);
+
     const {
       organizerId,
       __v,
@@ -60,6 +64,8 @@ const getEventById = async (req, res, next) => {
       isDeleted,
       ...newEvent
     } = event._doc;
+
+    newEvent.attendees = attendees
 
     res.status(200).json({ success: true, message: newEvent });
   } catch (error) {

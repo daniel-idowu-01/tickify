@@ -3,12 +3,12 @@ import User from "../models/User.js";
 import Event from "../models/Event.js";
 import Ticket from "../models/Ticket.js";
 import { errorHandler } from "../middleware/errorHandler.js";
+import { isEmpty } from "../utils/helpers.js";
 
 const createTicket = async (req, res, next) => {
-  let user, event;
+  let user, event, tickets;
   try {
-    const { username, firstName, lastName } = req.body;
-    const { userId, eventId } = req.params;
+    const { userId, eventId, username, firstName, lastName } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return next(errorHandler(400, "Input valid User ID"));
@@ -19,7 +19,8 @@ const createTicket = async (req, res, next) => {
     }
 
     user = await User.findById(userId);
-    event = await User.findById(eventId);
+    event = await Event.findById(eventId);
+    tickets = await Ticket.find({ eventId });
     if (!user) {
       return next(errorHandler(404, "User not found!"));
     }
@@ -27,12 +28,18 @@ const createTicket = async (req, res, next) => {
       return next(errorHandler(404, "Event not found!"));
     }
 
+    const hasTicket = tickets.some((ticket) => ticket.userId.equals(user._id));
+
+    if (hasTicket) {
+      return next(errorHandler(400, "Only one ticket per user!"));
+    }
+
     const createdTicket = await Ticket.create({
       userId: user._id,
+      eventId,
       firstName,
       lastName,
       username,
-      eventId,
     });
 
     if (!createdTicket) {
@@ -41,7 +48,7 @@ const createTicket = async (req, res, next) => {
 
     return res
       .status(201)
-      .json({ success: true, message: "Ticket created successfully!" });
+      .json({ success: true, data: "Ticket created successfully!" });
   } catch (error) {
     next(error);
   }
@@ -57,9 +64,7 @@ const getTicketById = async (req, res, next) => {
     const ticket = await Ticket.findById(id, {
       __v: 0,
       createdAt: 0,
-      deletedAt: 0,
       updatedAt: 0,
-      isDeleted: 0,
     });
     if (!ticket || ticket.isDeleted) {
       return next(errorHandler(400, "Ticket not found!"));
@@ -69,18 +74,10 @@ const getTicketById = async (req, res, next) => {
       return next(errorHandler(400, "Ticket is expired!"));
     }
 
-    const {
-      __v,
-      createdAt,
-      updatedAt,
-      isDeleted,
-      deletedAt,
-      userId,
-      eventId,
-      ...newTicket
-    } = ticket._doc;
+    const { isDeleted, deletedAt, isUsed, isExpired, ...newTicket } =
+      ticket._doc;
 
-    res.status(200).json({ success: true, message: newTicket });
+    res.status(200).json({ success: true, data: newTicket });
   } catch (error) {
     next(error);
   }
@@ -96,12 +93,10 @@ const validateTicket = async (req, res, next) => {
     const ticket = await Ticket.findById(ticketId, {
       __v: 0,
       createdAt: 0,
-      deletedAt: 0,
       updatedAt: 0,
-      isDeleted: 0,
     });
 
-    if (!ticket) {
+    if (!ticket || ticket.isDeleted) {
       return next(errorHandler(404, "Ticket not found!"));
     }
 
@@ -124,7 +119,7 @@ const validateTicket = async (req, res, next) => {
       { new: true }
     );
 
-    return res.status(200).json({ success: true, message: "Ticket is valid" });
+    return res.status(200).json({ success: true, data: "Ticket is valid" });
   } catch (error) {
     next(error);
   }
@@ -146,12 +141,13 @@ const getAllTicketsByEventId = async (req, res, next) => {
         isDeleted: 0,
       }
     );
-    console.log("All Tickets", tickets);
-    if (!tickets || tickets.isDeleted) {
-      return next(errorHandler(400, "tickets not found!"));
+
+    const empty = isEmpty(tickets);
+    if (empty) {
+      return next(errorHandler(400, "No tickets for this event!"));
     }
 
-    res.status(200).json({ success: true, message: tickets });
+    res.status(200).json({ success: true, data: tickets });
   } catch (error) {
     next(error);
   }
@@ -179,7 +175,7 @@ const expireTicketById = async (req, res, next) => {
       return next(errorHandler(400, "Ticket not found!"));
     }
 
-    res.status(200).json({ success: true, message: "Ticket is expired!!!" });
+    res.status(200).json({ success: true, data: "Ticket is expired!!!" });
   } catch (error) {
     next(error);
   }
@@ -209,7 +205,7 @@ const deleteTicketById = async (req, res, next) => {
 
     res
       .status(200)
-      .json({ success: true, message: "Ticket successfully deleted" });
+      .json({ success: true, data: "Ticket successfully deleted" });
   } catch (error) {
     next(error);
   }
