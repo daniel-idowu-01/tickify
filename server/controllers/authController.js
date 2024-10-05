@@ -77,7 +77,7 @@ const signUp = async (req, res, next) => {
       phoneNumber,
     });
 
-    jwt.sign(
+    /* jwt.sign(
       {
         id: createdUser._id,
       },
@@ -106,11 +106,11 @@ const signUp = async (req, res, next) => {
           }
         });
       }
-    );
+    ); */
 
-    /* res
+    res
       .status(201)
-      .json({ success: true, message: "User created successfully!" }); */
+      .json({ success: true, message: "User created successfully!" });
   } catch (error) {
     next(error);
   }

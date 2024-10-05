@@ -1,10 +1,13 @@
-function App() {
+import React from "react";
+import SignUp from "./pages/auth/SignUp";
+
+const App = () => {
   return (
-    <div>
-      <h1>My App</h1>
-      <h1 className="text-3xl font-bold underline text-red-400">Hello world!</h1>
+    <div className="montserrat-normal">
+      {/* <img src={bgImage} alt="" /> */}
+      <SignUp />
     </div>
   );
-}
+};
 
 export default App;
